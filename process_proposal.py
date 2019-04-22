@@ -16,31 +16,42 @@ proposal_file: contains all the name of video that has action annotations, the f
 import os
 import sys
 
-file_dir = sys.argv[1]
-label_res = []
-proposal_res = {}
-for filename in os.listdir(file_dir):
-    with open(file_dir+filename, 'r') as file:
+
+def load_label_file(file_path):
+    positive_frames = set({})
+    with open(file_path, 'r') as file:
         for line in file:
-            line_split = line.split()
-            name = line_split[0]
-            a = int(float(line_split[1]) * 10)
-            b = int(float(line_split[2]) * 10)
-            if name in proposal_res:
-                proposal_res[name].append((a,b))
-            else:
-                proposal_res[name] = [(a,b)]
-            for i in range(a,b+1):
-                idx = '0'*(4-len(str(i))) + str(i)
-                label_res.append(name + '_' + idx)
+            line = line.strip(' \n')
+            positive_frames.add(line)
+    return positive_frames
 
-label_res.sort()
-with open('label_file', 'w') as label_file:
-    for label in label_res:
-        label_file.write("%s\n" % label)
 
-with open('proposal_file', 'w') as proposal_file:
-    for key in sorted(proposal_res.keys()):
-        proposal_file.write("%s %d\n" % (key, len(proposal_res[key])))
-        for proposal in proposal_res[key]:
-            proposal_file.write("%d %d\n" % (proposal[0], proposal[1]))
+if __name__ == '__main__':
+    file_dir = sys.argv[1]
+    label_res = []
+    proposal_res = {}
+    for filename in os.listdir(file_dir):
+        with open(file_dir+filename, 'r') as file:
+            for line in file:
+                line_split = line.split()
+                name = line_split[0]
+                a = int(float(line_split[1]) * 10)
+                b = int(float(line_split[2]) * 10)
+                if name in proposal_res:
+                    proposal_res[name].append((a,b))
+                else:
+                    proposal_res[name] = [(a,b)]
+                for i in range(a,b+1):
+                    idx = '0'*(4-len(str(i))) + str(i)
+                    label_res.append(name + '_' + idx)
+
+    label_res.sort()
+    with open('label_file', 'w') as label_file:
+        for label in label_res:
+            label_file.write("%s.jpg\n" % label)
+
+    with open('proposal_file', 'w') as proposal_file:
+        for key in sorted(proposal_res.keys()):
+            proposal_file.write("%s %d\n" % (key, len(proposal_res[key])))
+            for proposal in proposal_res[key]:
+                proposal_file.write("%d %d\n" % (proposal[0], proposal[1]))
